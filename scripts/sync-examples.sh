@@ -127,9 +127,9 @@ inject_examples() {
     fi
 
     {
-      echo "**[${name}](${prefix}/${name})** -- ${desc}"
+      echo "**[${name}](${prefix}/${name})** - ${desc}"
       echo ""
-      echo "<video src=\"${prefix}/${name}/${video}\" controls muted width=\"100%\"></video>"
+      echo "<video src=\"https://github.com/vercel-labs/webreel/raw/main/${prefix}/${name}/${video}\" controls muted width=\"100%\"></video>"
       echo ""
     } >> "$tmp"
   done
