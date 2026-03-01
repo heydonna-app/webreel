@@ -12,6 +12,7 @@ export const PAGE_TITLES: Record<string, string> = {
   actions: "Actions",
   configuration: "Configuration",
   examples: "Examples",
+  changelog: "Changelog",
 };
 
 /**

@@ -24,6 +24,7 @@ export const docsNavigation: NavSection[] = [
       { title: "Commands", href: "/commands" },
       { title: "Actions", href: "/actions" },
       { title: "Examples", href: "/examples" },
+      { title: "Changelog", href: "/changelog" },
     ],
   },
 ];
