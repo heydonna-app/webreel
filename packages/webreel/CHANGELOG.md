@@ -1,5 +1,13 @@
 # webreel
 
+## 0.1.3
+
+### Patch Changes
+
+- Add homepage and bugs URLs to package.json files. Fix README video embeds for GitHub LFS.
+- Updated dependencies
+  - @webreel/core@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes
