@@ -99,7 +99,16 @@ export function finalizeMp4(
 ): void {
   if (events.length === 0 || !options?.sfx) {
     if (options?.remux) {
-      runFfmpeg(ffmpegPath, ["-y", "-i", tempVideo, "-c", "copy", outputPath]);
+      runFfmpeg(ffmpegPath, [
+        "-y",
+        "-i",
+        tempVideo,
+        "-c",
+        "copy",
+        "-movflags",
+        "+faststart",
+        outputPath,
+      ]);
     } else {
       renameSync(tempVideo, outputPath);
     }
@@ -129,6 +138,8 @@ export function finalizeMp4(
     "-b:a",
     "128k",
     "-shortest",
+    "-movflags",
+    "+faststart",
     outputPath,
   ]);
 }
