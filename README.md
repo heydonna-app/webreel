@@ -22,55 +22,55 @@ npx webreel record
 
 **[custom-theme](examples/custom-theme)** - Demonstrates fully customizing the cursor overlay and keystroke HUD appearance using a code editor page.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/custom-theme.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/custom-theme/videos/custom-theme.mp4" controls muted width="100%"></video>
 
 **[drag-and-drop](examples/drag-and-drop)** - Demonstrates dragging elements between positions on a kanban board.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/drag-and-drop.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/drag-and-drop/videos/drag-and-drop.mp4" controls muted width="100%"></video>
 
 **[form-filling](examples/form-filling)** - Demonstrates typing into form fields and clicking a submit button, simulating a login flow.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/form-filling.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/form-filling/videos/form-filling.mp4" controls muted width="100%"></video>
 
 **[gif-output](examples/gif-output)** - Demonstrates outputting the recording as an animated GIF instead of the default MP4.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/gif-output.gif
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/gif-output/videos/gif-output.gif" controls muted width="100%"></video>
 
 **[hello-world](examples/hello-world)** - The simplest possible webreel example. Opens a landing page and clicks the call-to-action button.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/hello-world.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/hello-world/videos/hello-world.mp4" controls muted width="100%"></video>
 
 **[keyboard-shortcuts](examples/keyboard-shortcuts)** - Demonstrates pressing key combos and displaying them in the keystroke HUD overlay. Uses a code editor page as the target.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/keyboard-shortcuts.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/keyboard-shortcuts/videos/keyboard-shortcuts.mp4" controls muted width="100%"></video>
 
 **[mobile-viewport](examples/mobile-viewport)** - Demonstrates recording at mobile device dimensions using a finance app interface.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/mobile-viewport.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/mobile-viewport/videos/mobile-viewport.mp4" controls muted width="100%"></video>
 
 **[modifier-clicks](examples/modifier-clicks)** - Demonstrates clicking elements with modifier keys held down, simulating multi-select in a file manager.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/modifier-clicks.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/modifier-clicks/videos/modifier-clicks.mp4" controls muted width="100%"></video>
 
 **[multi-demo](examples/multi-demo)** - Demonstrates defining multiple videos in a single config file, each producing its own output from the same page.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/homepage.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/multi-demo/videos/homepage.mp4" controls muted width="100%"></video>
 
 **[page-scrolling](examples/page-scrolling)** - Demonstrates scrolling the page and scrolling within a specific container element on a blog post layout.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/page-scrolling.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/page-scrolling/videos/page-scrolling.mp4" controls muted width="100%"></video>
 
 **[screenshots](examples/screenshots)** - Demonstrates capturing PNG screenshots at specific points during a recording. Useful for generating static marketing assets or documentation images alongside videos.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/screenshots.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/screenshots/videos/screenshots.mp4" controls muted width="100%"></video>
 
 **[shared-steps](examples/shared-steps)** - Demonstrates using `include` to share common setup steps across videos. The shared steps dismiss a cookie consent banner before the main video steps run.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/shared-steps.mp4
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/shared-steps/shared-steps.mp4" controls muted width="100%"></video>
 
 **[webm-output](examples/webm-output)** - Demonstrates outputting the recording as a WebM video using VP9 encoding.
 
-https://github.com/vercel-labs/webreel/releases/download/v0.1.3/webm-output.webm
+<video src="https://github.com/vercel-labs/webreel/raw/main/examples/webm-output/webm-output.webm" controls muted width="100%"></video>
 
 <!-- EXAMPLES:END -->
 
