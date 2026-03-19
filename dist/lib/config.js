@@ -1,7 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname, isAbsolute, extname } from "node:path";
 import { parse as parseJsonc, parseTree, getNodePath } from "jsonc-parser";
-import { createJiti } from "jiti";
 import { VIEWPORT_PRESETS } from "./types.js";
 export const DEFAULT_CONFIG_NAME = "webreel.config";
 export const DEFAULT_CONFIG_FILE = "webreel.config.json";
@@ -107,6 +106,7 @@ function resolveVideoDefaults(video, defaults, outDir, configDir) {
     return resolved;
 }
 async function loadTsConfig(filePath) {
+    const { createJiti } = await import("jiti");
     const jiti = createJiti(filePath, { interopDefault: true });
     const mod = await jiti.import(filePath);
     return mod;
@@ -235,12 +235,15 @@ const VALID_ACTIONS = new Set([
     "drag",
     "moveTo",
     "type",
+    "react-fill",
     "scroll",
     "wait",
     "screenshot",
     "navigate",
     "hover",
     "select",
+    "upload",
+    "eval",
 ]);
 const KNOWN_TOP_LEVEL_KEYS = new Set([
     "$schema",
@@ -282,6 +285,8 @@ const KNOWN_STEP_KEYS = {
         "label",
         "delay",
         "description",
+        "xPercent",
+        "yPercent",
     ]),
     key: new Set(["action", "key", "target", "label", "delay", "description"]),
     drag: new Set(["action", "from", "to", "label", "delay", "description"]),
@@ -293,6 +298,8 @@ const KNOWN_STEP_KEYS = {
         "label",
         "delay",
         "description",
+        "xPercent",
+        "yPercent",
     ]),
     type: new Set([
         "action",
@@ -346,6 +353,9 @@ const KNOWN_STEP_KEYS = {
         "delay",
         "description",
     ]),
+    upload: new Set(["action", "selector", "filePath", "filePaths", "label", "delay", "description"]),
+    "react-fill": new Set(["action", "selector", "text", "label", "delay", "description"]),
+    eval: new Set(["action", "expression", "awaitPromise", "label", "delay", "description"]),
 };
 function levenshtein(a, b) {
     const m = a.length;
@@ -539,6 +549,24 @@ function validateStep(step, index) {
             }
             if (typeof s.value !== "string") {
                 errors.push({ path: `${prefix}.value`, message: "Must be a string" });
+            }
+            break;
+        }
+        case "upload": {
+            if (!s.selector || typeof s.selector !== "string" || s.selector.length === 0) {
+                errors.push({ path: `${prefix}.selector`, message: "Must be a non-empty string" });
+            }
+            const hasFilePath = typeof s.filePath === "string" && s.filePath.length > 0;
+            const hasFilePaths = Array.isArray(s.filePaths) && s.filePaths.length > 0;
+            if (!hasFilePath && !hasFilePaths) {
+                errors.push({ path: prefix, message: 'upload requires "filePath" or "filePaths"' });
+            }
+            if (Array.isArray(s.filePaths)) {
+                for (let i = 0; i < s.filePaths.length; i++) {
+                    if (typeof s.filePaths[i] !== "string" || s.filePaths[i].length === 0) {
+                        errors.push({ path: `${prefix}.filePaths[${i}]`, message: "Must be a non-empty string" });
+                    }
+                }
             }
             break;
         }

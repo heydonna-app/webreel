@@ -108,7 +108,24 @@ export interface StepSelect {
     delay?: number;
     description?: string;
 }
-export type Step = StepPause | StepClick | StepKey | StepDrag | StepType | StepScroll | StepWait | StepMoveTo | StepScreenshot | StepNavigate | StepHover | StepSelect;
+export interface StepUpload {
+    action: "upload";
+    selector: string;
+    filePath?: string;
+    filePaths?: string[];
+    label?: string;
+    delay?: number;
+    description?: string;
+}
+export interface StepEval {
+    action: "eval";
+    expression: string;
+    awaitPromise?: boolean;
+    label?: string;
+    delay?: number;
+    description?: string;
+}
+export type Step = StepPause | StepClick | StepKey | StepDrag | StepType | StepScroll | StepWait | StepMoveTo | StepScreenshot | StepNavigate | StepHover | StepSelect | StepUpload | StepEval;
 export interface CursorConfig {
     image?: string;
     size?: number;

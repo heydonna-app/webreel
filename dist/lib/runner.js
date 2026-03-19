@@ -1,5 +1,6 @@
 import { resolve, dirname } from "node:path";
 import { readFileSync, writeFileSync, mkdirSync, renameSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { RecordingContext, connectCDP, launchChrome, navigate, waitForSelector, waitForText, injectOverlays, pause, findElementByText, findElementBySelector, clickAt, pressKey, typeText, dragFromTo, moveCursorTo, captureScreenshot, Recorder, InteractionTimeline, compose, ensureFfmpeg, extractThumbnail, DEFAULT_VIEWPORT_SIZE, } from "@webreel/core";
 export function formatStep(i, step) {
@@ -29,6 +30,12 @@ export function formatStep(i, step) {
             return `[step ${i}] hover ${step.text ? `text="${step.text}"` : `selector="${step.selector}"`}${desc}`;
         case "select":
             return `[step ${i}] select "${step.selector}" value="${step.value}"${desc}`;
+        case "upload":
+            return `[step ${i}] upload selector="${step.selector}" file="${step.filePaths ? step.filePaths.join(',') : step.filePath}"${desc}`;
+        case "react-fill":
+            return `[step ${i}] react-fill selector="${step.selector}" text="${step.text?.slice(0, 30)}"${desc}`;
+        case "eval":
+            return `[step ${i}] eval expression="${step.expression?.slice(0, 60)}"${desc}`;
         default: {
             const _exhaustive = step;
             return `[step ${i}] ${_exhaustive.action}`;
@@ -112,6 +119,13 @@ export async function runVideo(config, options) {
             deviceScaleFactor: zoom,
             mobile: false,
         });
+        // Inject auth cookies from WEBREEL_COOKIES_FILE env var before navigating
+        const cookiesFile = process.env.WEBREEL_COOKIES_FILE;
+        if (cookiesFile && existsSync(cookiesFile)) {
+            await client.Network.enable();
+            const cookies = JSON.parse(readFileSync(cookiesFile, "utf8"));
+            await client.Network.setCookies({ cookies });
+        }
         const baseUrl = config.baseUrl ?? "";
         const url = resolveUrl(config.url, baseUrl, configDir);
         await navigate(client, url);
@@ -191,8 +205,28 @@ export async function runVideo(config, options) {
                         await pause(step.ms);
                         break;
                     case "click": {
+                        // Scroll element into view before resolving bounding box.
+                        // getBoundingClientRect() returns viewport-relative coords; if the
+                        // element is below the fold the y value exceeds viewport height and
+                        // the physical mouse event misses. scrollIntoView with block:'nearest'
+                        // is a no-op when the element is already visible.
+                        if (step.selector) {
+                            await client.Runtime.evaluate({
+                                expression: `(() => {
+                                    const el = document.querySelector(${JSON.stringify(step.selector)});
+                                    if (el) el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+                                })()`,
+                            });
+                            await pause(150);
+                        }
                         const box = await resolveTarget(client, step);
-                        const { x: cx, y: cy } = randomPointInBox(box);
+                        let cx, cy;
+                        if (step.xPercent !== undefined || step.yPercent !== undefined) {
+                            cx = box.x + (box.width * ((step.xPercent ?? 50) / 100));
+                            cy = box.y + (box.height * ((step.yPercent ?? 50) / 100));
+                        } else {
+                            ({ x: cx, y: cy } = randomPointInBox(box));
+                        }
                         await clickAt(ctx, client, cx, cy, step.modifiers);
                         break;
                     }
@@ -216,16 +250,40 @@ export async function runVideo(config, options) {
                         break;
                     }
                     case "type": {
+                        console.error("[DEBUG-TYPE] step:", JSON.stringify({selector: step.selector, text: step.text?.substring(0,20)}));
                         if (step.selector) {
-                            const box = await resolveTarget(client, step);
+                            const box = await findElementBySelector(client, step.selector, step.within);
+                            if (!box) {
+                                throw new Error(`Element not found: selector="${step.selector}"`);
+                            }
                             const { x: tx, y: ty } = randomPointInBox(box);
                             await clickAt(ctx, client, tx, ty);
                             await client.Runtime.evaluate({
                                 expression: `document.querySelector(${JSON.stringify(step.selector)})?.focus()`,
                             });
                             await pause(300 + Math.random() * 200);
+                            // React 19 requires InputEvent (not plain Event) for onChange to fire
+                            await client.Runtime.evaluate({
+                                expression: `(() => {
+                                    const el = document.querySelector(${JSON.stringify(step.selector)});
+                                    if (!el) return;
+                                    const proto = el.tagName === 'TEXTAREA'
+                                        ? window.HTMLTextAreaElement.prototype
+                                        : window.HTMLInputElement.prototype;
+                                    const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+                                    setter.call(el, ${JSON.stringify(step.text)});
+                                    el.dispatchEvent(new InputEvent('input', {
+                                        bubbles: true,
+                                        cancelable: true,
+                                        inputType: 'insertText',
+                                        data: ${JSON.stringify(step.text)},
+                                    }));
+                                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                                })()`,
+                            });
+                        } else {
+                            await typeText(ctx, client, step.text, step.charDelay);
                         }
-                        await typeText(ctx, client, step.text, step.charDelay);
                         break;
                     }
                     case "scroll": {
@@ -278,7 +336,13 @@ export async function runVideo(config, options) {
                     }
                     case "moveTo": {
                         const box = await resolveTarget(client, step);
-                        const { x: mx, y: my } = randomPointInBox(box, 0.1);
+                        let mx, my;
+                        if (step.xPercent !== undefined || step.yPercent !== undefined) {
+                            mx = box.x + (box.width * ((step.xPercent ?? 50) / 100));
+                            my = box.y + (box.height * ((step.yPercent ?? 50) / 100));
+                        } else {
+                            ({ x: mx, y: my } = randomPointInBox(box, 0.1));
+                        }
                         await moveCursorTo(ctx, client, mx, my);
                         break;
                     }
@@ -329,6 +393,54 @@ export async function runVideo(config, options) {
                         else {
                             throw new Error(`select step requires "selector" or "text"`);
                         }
+                        break;
+                    }
+                    case "upload": {
+                        const rawPaths = step.filePaths ?? (step.filePath ? [step.filePath] : []);
+                        const files = rawPaths.map(p => resolve(configDir, p));
+                        await client.DOM.enable();
+                        const { root } = await client.DOM.getDocument({ depth: 0 });
+                        const { nodeId } = await client.DOM.querySelector({
+                            nodeId: root.nodeId,
+                            selector: step.selector,
+                        });
+                        await client.DOM.setFileInputFiles({ nodeId, files });
+                        break;
+                    }
+                    case "react-fill": {
+                        // Click + focus the target element
+                        const box = await resolveTarget(client, { selector: step.selector });
+                        const { x: rfx, y: rfy } = randomPointInBox(box);
+                        await clickAt(ctx, client, rfx, rfy);
+                        await client.Runtime.evaluate({
+                            expression: `document.querySelector(${JSON.stringify(step.selector)})?.focus()`,
+                        });
+                        await pause(150);
+                        // Use React's native setter to set value — triggers controlled input onChange.
+                        // InputEvent (not plain Event) is required for React 19's input tracker.
+                        await client.Runtime.evaluate({
+                            expression: `(function() {
+                                const el = document.querySelector(${JSON.stringify(step.selector)});
+                                if (!el) return;
+                                const proto = el.tagName === 'TEXTAREA'
+                                    ? window.HTMLTextAreaElement.prototype
+                                    : window.HTMLInputElement.prototype;
+                                const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+                                setter.call(el, ${JSON.stringify(step.text)});
+                                el.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: ${JSON.stringify(step.text)} }));
+                                el.dispatchEvent(new Event('change', { bubbles: true }));
+                            })()`,
+                        });
+                        break;
+                    }
+                    case "eval": {
+                        // Run arbitrary JavaScript in the page context.
+                        // Useful for calling React fiber props (e.g. onSeek via fiber.memoizedProps)
+                        // or any in-page API that isn't reachable via standard WeReel actions.
+                        await client.Runtime.evaluate({
+                            expression: step.expression,
+                            awaitPromise: step.awaitPromise ?? false,
+                        });
                         break;
                     }
                 }
