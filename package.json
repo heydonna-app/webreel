@@ -47,7 +47,7 @@
     "commander": "^14.0.3",
     "jiti": "^2.6.1",
     "jsonc-parser": "^3.3.1",
-    "@webreel/core": "0.1.4"
+    "@webreel/core": "github:heydonna-app/webreel-core#v0.1.4-heydonna.1"
   },
   "devDependencies": {
     "@types/node": "25.3.0",
