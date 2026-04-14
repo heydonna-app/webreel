@@ -152,7 +152,8 @@ export async function runVideo(
   if (config.clickDwell !== undefined) ctx.setClickDwell(config.clickDwell);
   const initialCursor = ctx.getCursorPosition();
 
-  const chrome = await launchChrome({ headless: shouldRecord });
+  const forceHeaded = process.env.WEBREEL_FORCE_HEADED === "1";
+  const chrome = await launchChrome({ headless: shouldRecord && !forceHeaded });
   let clientRef: CDPClient | null = null;
   let recorder: Recorder | null = null;
 

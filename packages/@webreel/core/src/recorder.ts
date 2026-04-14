@@ -186,7 +186,10 @@ export class Recorder {
         const buffer = Buffer.from(screenshotResult.data, "base64");
         const now = Date.now();
         const elapsed = now - lastFrameTime;
-        const frameSlots = Math.min(3, Math.max(1, Math.round(elapsed / this.frameMs)));
+        const frameSlots = Math.min(
+          this.fps * 5,
+          Math.max(1, Math.round(elapsed / this.frameMs)),
+        );
 
         if (frameSlots > 1) {
           for (let i = 0; i < frameSlots - 1; i++) {
